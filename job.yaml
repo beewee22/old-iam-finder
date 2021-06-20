@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: run-old-iam-finder
+  namespace: iam-finder
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+        - name: old-iam-finder
+          image: beewee/oldiamfinder:latest
+          envFrom:
+            - secretRef:
+                name: iam-finder-secret
+      restartPolicy: Never
