@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
@@ -57,7 +58,16 @@ func (f IAMFinder) ListAllAccessKeyMetadata() (accessKeys []types.AccessKeyMetad
 	return
 }
 
-func (f IAMFinder) ListAllOldAccessKey(expireHours int) (oldAccessKeyList []types.AccessKeyMetadata) {
+type OldAccessKeyInfo struct {
+	UserName string
+	AccessKeyId string
+	LastUsed time.Time
+	IsNotUsed bool
+}
+
+const AccesskeyPrefix = "AKIA"
+
+func (f IAMFinder) ListAllOldAccessKey(expireHours int) (oldAccessKeyList []OldAccessKeyInfo) {
 	// calc expected at least time
 	expireDuration := time.Duration(expireHours) * time.Hour * -1
 	expectedLastUsed := time.Now().Add(expireDuration)
@@ -65,6 +75,10 @@ func (f IAMFinder) ListAllOldAccessKey(expireHours int) (oldAccessKeyList []type
 	accessKeyMetadataList := f.ListAllAccessKeyMetadata()
 
 	for _, accessKeyMetadata := range accessKeyMetadataList {
+		// access key must starts with "AKIA"
+		if strings.HasPrefix(*accessKeyMetadata.AccessKeyId, AccesskeyPrefix) {
+			continue
+		}
 		last, err := f.iam.GetAccessKeyLastUsed(context.TODO(), &iam.GetAccessKeyLastUsedInput{
 			AccessKeyId: accessKeyMetadata.AccessKeyId,
 		})
@@ -74,16 +88,23 @@ func (f IAMFinder) ListAllOldAccessKey(expireHours int) (oldAccessKeyList []type
 		}
 		if last != nil {
 			var lastUsedTime *time.Time
+			isNotUsed := false
 			// check if access key was not used
 			if last.AccessKeyLastUsed.LastUsedDate == nil {
 				// if the access key was not used at all, check with created date
 				lastUsedTime = accessKeyMetadata.CreateDate
+				isNotUsed = true
 			} else {
 				lastUsedTime = last.AccessKeyLastUsed.LastUsedDate
 			}
 			// check last used before expected time
 			if lastUsedTime.Before(expectedLastUsed) {
-				oldAccessKeyList = append(oldAccessKeyList, accessKeyMetadata)
+				oldAccessKeyList = append(oldAccessKeyList, OldAccessKeyInfo{
+					UserName:  *last.UserName,
+					AccessKeyId: *accessKeyMetadata.AccessKeyId,
+					LastUsed: *lastUsedTime,
+					IsNotUsed: isNotUsed,
+				})
 			}
 		}
 	}
