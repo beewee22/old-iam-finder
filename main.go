@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/config"
 )
 
@@ -15,12 +13,8 @@ func main() {
 	}
 
 	iamFinder := NewIAMFinderFromAWSConfig(cfg)
-	oldAccessKeyList := iamFinder.ListAllOldAccessKey(10)
+	oldAccessKeyList := iamFinder.ListAllOldAccessKey(5 * 24)
 
-	for _, accessKeyMetadata := range oldAccessKeyList {
-		d, _ := json.MarshalIndent(accessKeyMetadata, "", "")
-		fmt.Printf("%s\n", d)
-	}
-
+	sendOldAccessKeys(oldAccessKeyList, "https://hooks.slack.com/services/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")
 }
 
