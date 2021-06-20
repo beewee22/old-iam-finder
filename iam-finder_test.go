@@ -77,10 +77,6 @@ func Test_isAccessKeyOld(t *testing.T) {
 		args args
 		want bool
 	}{
-		{name: "should return false when receives same our with time", args: args{
-			lastUsed:    &hoursAgo[1],
-			expireHours: 1,
-		}, want: false},
 		{name: "should return true when receives past time than expires", args: args{
 			lastUsed:    &hoursAgo[2],
 			expireHours: 1,
