@@ -27,7 +27,8 @@ func NewIAMFinderFromAWSConfig(cfg aws.Config) *IAMFinder {
 
 //ListAllIAMUsers List all IAM users from account
 func (f IAMFinder) ListAllIAMUsers() *iam.ListUsersOutput {
-	userList, err := f.iam.ListUsers(context.TODO(), &iam.ListUsersInput{})
+  var maxItems int32 = 100
+	userList, err := f.iam.ListUsers(context.TODO(), &iam.ListUsersInput{MaxItems: &maxItems})
 
 	if err != nil {
 		fmt.Println("Got an error retrieving users:")
