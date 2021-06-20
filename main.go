@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	env "github.com/Netflix/go-env"
 	"github.com/aws/aws-sdk-go-v2/config"
 )
@@ -36,4 +37,3 @@ func main() {
 		sendOldAccessKeys(oldAccessKeyList, environment.SlackWebhookURL)
 	}
 }
-
