@@ -76,7 +76,7 @@ func (f IAMFinder) ListAllOldAccessKey(expireHours int) (oldAccessKeyList []OldA
 
 	for _, accessKeyMetadata := range accessKeyMetadataList {
 		// access key must starts with "AKIA"
-		if strings.HasPrefix(*accessKeyMetadata.AccessKeyId, AccesskeyPrefix) {
+		if !strings.HasPrefix(*accessKeyMetadata.AccessKeyId, AccesskeyPrefix) {
 			continue
 		}
 		last, err := f.iam.GetAccessKeyLastUsed(context.TODO(), &iam.GetAccessKeyLastUsedInput{
